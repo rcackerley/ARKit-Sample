@@ -11,26 +11,17 @@ import SceneKit
 import ARKit
 
 class ViewController: UIViewController, ARSCNViewDelegate {
-
+    
+    
+    var diceArray = [SCNNode]()
+    
     @IBOutlet var sceneView: ARSCNView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
         // Set the view's delegate
         sceneView.delegate = self
         
-//        let sphere = SCNSphere(radius: 0.2)
-//
-//        let material = SCNMaterial()
-//        material.diffuse.contents = UIImage(named: "art.scnassets/moon.jpg")
-//        sphere.materials = [material]
-//
-//        let node = SCNNode()
-//        node.position = SCNVector3(x: 0, y: 0.1, z: -0.5)
-//        node.geometry = sphere
-//
-//        sceneView.scene.rootNode.addChildNode(node)
         sceneView.autoenablesDefaultLighting = true
         
 
@@ -67,12 +58,50 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                     diceNode.position = SCNVector3(x: hitResult.worldTransform.columns.3.x,
                                                    y: hitResult.worldTransform.columns.3.y + diceNode.boundingSphere.radius,
                                                    z: hitResult.worldTransform.columns.3.z)
+                    
+                    diceArray.append(diceNode)
+                    
                     sceneView.scene.rootNode.addChildNode(diceNode)
+                    roll(dice: diceNode)
                 }
             }
         }
     }
     
+    func rollAll() {
+        if diceArray.isEmpty == false {
+            for dice in diceArray {
+                roll(dice: dice)
+            }
+        }
+    }
+    
+    @IBAction func deleteDice(_ sender: UIBarButtonItem) {
+        if diceArray.isEmpty == false {
+            for dice in diceArray {
+                dice.removeFromParentNode()
+            }
+        }
+    }
+    func roll(dice: SCNNode) {
+        let randomX = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+        let randomZ = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+        
+        dice.runAction(SCNAction.rotateBy(
+            x: CGFloat(randomX * 5),
+            y: 0,
+            z: CGFloat(randomZ * 5),
+            duration: 0.5)
+        )
+    }
+    
+    @IBAction func rollAgain(_ sender: UIBarButtonItem) {
+        rollAll()
+    }
+    
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
+        rollAll()
+    }
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         if anchor is ARPlaneAnchor {
             
